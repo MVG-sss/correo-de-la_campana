@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>El Correo de la Campana - Diario Digital de Sevilla</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Merriweather:ital,wght@0,300;0,400;0,700;1,300&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        seville: {
+                            gold: '#D4AF37',
+                            red: '#8B0000',
+                            crimson: '#990000',
+                            ochre: '#C87D20',
+                            dark: '#1A1A1A',
+                            paper: '#FDFBF7'
+                        }
+                    },
+                    fontFamily: {
+                        title: ['Cinzel', 'serif'],
+                        body: ['Merriweather', 'serif'],
+                        sans: ['Montserrat', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #F8F6F0;
+            color: #222;
+        }
+        .line-clamp-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .line-clamp-3 {
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        /* Style for newspaper borders */
+        .border-double-custom {
+            border-bottom: 4px double #1a1a1a;
+        }
+        .border-top-double {
+            border-top: 4px double #1a1a1a;
+        }
+    </style>
+</head>
+<body class="font-sans antialiased flex flex-col min-h-screen">
+
+    <!-- TOP BAR (FECHA Y TIEMPO) -->
+    <div class="bg-seville-dark text-gray-300 text-xs py-1.5 px-4">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-4">
+                <span id="current-date"><i class="far fa-calendar-alt mr-1"></i> Sevilla, <span id="date-str"></span></span>
+                <span class="hidden sm:inline"><i class="fas fa-sun text-amber-400 mr-1"></i> 22°C Soleado</span>
+            </div>
+            <div class="flex items-center space-x-3">
+                <span class="text-xs bg-seville-crimson text-white px-2 py-0.5 rounded font-semibold tracking-wide uppercase">Edición Digital</span>
+                <button onclick="toggleAdminModal()" class="hover:text-seville-gold transition flex items-center gap-1 font-medium bg-gray-800 hover:bg-gray-700 px-2.5 py-1 rounded border border-gray-700">
+                    <i class="fas fa-pen-nib text-seville-gold"></i> Panel Redactor / Publicar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CABECERA DEL PERIÓDICO -->
+    <header class="bg-white border-b border-gray-300">
+        <div class="max-w-7xl mx-auto px-4 py-6">
+            <div class="text-center relative py-2">
+                <div class="text-xs tracking-widest uppercase font-semibold text-seville-ochre mb-1">
+                    <i class="fas fa-bell text-seville-gold mr-1"></i> Diario Digital de Actualidad, Hermandades y Cultura Sevillana
+                </div>
+                <h1 class="font-title text-4xl sm:text-6xl md:text-7xl font-extrabold text-seville-dark tracking-tight hover:opacity-95 transition cursor-pointer" onclick="filterCategory('todas')">
+                    EL CORREO DE LA CAMPANA
+                </h1>
+                <p class="font-body italic text-gray-600 text-xs sm:text-sm mt-1">La voz del corazón de Sevilla: Cofradías, Barrios, Tradición y Última Hora</p>
+            </div>
+
+            <!-- NAVEGACIÓN PRINCIPAL -->
+            <nav class="mt-6 border-t-2 border-b-2 border-seville-dark py-2.5">
+                <ul class="flex flex-wrap justify-center items-center gap-2 sm:gap-6 text-sm font-bold tracking-wider uppercase">
+                    <li><button onclick="filterCategory('todas')" class="nav-btn text-seville-crimson hover:text-seville-gold px-2 py-1 transition">Todas</button></li>
+                    <li><button onclick="filterCategory('Hermandades')" class="nav-btn hover:text-seville-crimson px-2 py-1 transition">Hermandades & Cofradías</button></li>
+                    <li><button onclick="filterCategory('Actualidad')" class="nav-btn hover:text-seville-crimson px-2 py-1 transition">Actualidad Local</button></li>
+                    <li><button onclick="filterCategory('Cultura')" class="nav-btn hover:text-seville-crimson px-2 py-1 transition">Cultura & Agenda</button></li>
+                    <li><button onclick="filterCategory('Opinión')" class="nav-btn hover:text-seville-crimson px-2 py-1 transition">Opinión</button></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- BANNER DE ÚLTIMA HORA -->
+    <div class="bg-amber-50 border-b border-amber-200 py-2 px-4">
+        <div class="max-w-7xl mx-auto flex items-center text-xs sm:text-sm">
+            <span class="bg-seville-crimson text-white font-bold px-2 py-0.5 rounded uppercase tracking-wider text-xs mr-3 shrink-0 flex items-center gap-1">
+                <i class="fas fa-bolt"></i> Última hora
+            </span>
+            <div class="overflow-hidden whitespace-nowrap w-full">
+                <p class="inline-block animate-pulse text-gray-800 font-medium">
+                    <span id="ticker-text">El Consejo de Hermandades confirma los horarios oficiales para las procesiones extraordinarias del otoño en la Campana.</span>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONTENIDO PRINCIPAL DEL PERIÓDICO -->
+    <main class="max-w-7xl mx-auto px-4 py-8 flex-grow">
+        
+        <!-- BARRA DE BÚSQUEDA Y FILTRO ACTIVO -->
+        <div class="mb-6 flex flex-col md:flex-row justify-between items-center gap-4 bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+            <div class="flex items-center space-x-2">
+                <span class="text-sm font-semibold text-gray-500">Categoría seleccionada:</span>
+                <span id="active-category-label" class="bg-seville-dark text-white text-xs font-bold px-3 py-1 rounded-full uppercase">Todas las noticias</span>
+            </div>
+            <div class="relative w-full md:w-72">
+                <input type="text" id="search-input" onkeyup="handleSearch()" placeholder="Buscar noticia, hermandad..." class="w-full pl-9 pr-4 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:border-seville-crimson">
+                <i class="fas fa-search absolute left-3 top-2.5 text-gray-400 text-xs"></i>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            <!-- COLUMNA PRINCIPAL (NOTICIAS) -->
+            <div class="lg:col-span-8 space-y-8">
+                
+                <!-- PORTADA DESTACADA (ARTÍCULO PRINCIPAL) -->
+                <article id="main-featured" class="bg-white rounded-lg overflow-hidden shadow-md border border-gray-200 hover:shadow-lg transition">
+                    <!-- Dinámico via JS -->
+                </article>
+
+                <!-- PARRILLA DE NOTICIAS SECUNDARIAS -->
+                <div class="border-t border-gray-300 pt-6">
+                    <h3 class="font-title text-xl font-bold text-seville-dark mb-4 border-b-2 border-seville-gold pb-1 inline-block">
+                        <i class="fas fa-newspaper text-seville-ochre mr-2"></i>Edición del Día
+                    </h3>
+                    <div id="articles-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Noticias dinámicas via JS -->
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- COLUMNA LATERAL (BARRA LATERAL SEVILLANA) -->
+            <aside class="lg:col-span-4 space-y-8">
+                
+                <!-- BOLETÍN COFRADE / AGENDA HERMANDADES -->
+                <div class="bg-white p-5 rounded-lg shadow-sm border-t-4 border-seville-crimson border-x border-b border-gray-200">
+                    <h3 class="font-title text-lg font-bold text-seville-dark mb-3 flex items-center">
+                        <i class="fas fa-church text-seville-crimson mr-2"></i> Agenda Cofrade & Hermandades
+                    </h3>
+                    <ul class="divide-y divide-gray-100 text-sm">
+                        <li class="py-2.5">
+                            <span class="text-xs font-bold text-seville-ochre block">Triduo y Besamanos</span>
+                            <a href="#" class="font-medium text-gray-800 hover:text-seville-crimson transition">Cultos solemnes en la Macarena con motivo del aniversario de Coronación.</a>
+                        </li>
+                        <li class="py-2.5">
+                            <span class="text-xs font-bold text-seville-ochre block">Música Procesional</span>
+                            <a href="#" class="font-medium text-gray-800 hover:text-seville-crimson transition">Certamen de bandas en los Jardines de Murillo este domingo a las 12:00h.</a>
+                        </li>
+                        <li class="py-2.5">
+                            <span class="text-xs font-bold text-seville-ochre block">Restauración Patriomonio</span>
+                            <a href="#" class="font-medium text-gray-800 hover:text-seville-crimson transition">El Gran Poder concluye la restauración del manto bordado del siglo XIX.</a>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- SECCIÓN DE OPINIÓN Y FIRMAS -->
+                <div class="bg-amber-50/60 p-5 rounded-lg shadow-sm border border-amber-200">
+                    <h3 class="font-title text-lg font-bold text-seville-dark mb-4 border-b border-amber-300 pb-2">
+                        <i class="fas fa-feather-alt text-seville-ochre mr-2"></i> El Atril de Sevilla
+                    </h3>
+                    <div class="space-y-4">
+                        <div class="flex items-start space-x-3">
+                            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80" class="w-10 h-10 rounded-full object-cover border border-amber-400" alt="Autor">
+                            <div>
+                                <h4 class="text-xs font-bold uppercase text-seville-crimson">Carmen Benítez</h4>
+                                <p class="text-xs font-serif italic text-gray-700">"El azahar tardío y el pulso cotidiano de nuestros barrios antiguos."</p>
+                            </div>
+                        </div>
+                        <hr class="border-amber-200">
+                        <div class="flex items-start space-x-3">
+                            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80" class="w-10 h-10 rounded-full object-cover border border-amber-400" alt="Autor">
+                            <div>
+                                <h4 class="text-xs font-bold uppercase text-seville-crimson">Manuel Roldán</h4>
+                                <p class="text-xs font-serif italic text-gray-700">"Cultura viva: Más allá del Guadalquivir en el nuevo siglo."</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PUBLICIDAD TRADICIONAL MOCKUP -->
+                <div class="bg-gray-100 p-6 rounded-lg text-center border border-dashed border-gray-400">
+                    <span class="text-xs uppercase text-gray-400 font-bold block mb-1">Patrocinador Local</span>
+                    <h4 class="font-title font-bold text-gray-800 text-base">Tablao & Gastronomía Hispalense</h4>
+                    <p class="text-xs text-gray-600 mt-1">Sabores de nuestra tierra frente a la Giralda.</p>
+                    <button class="mt-3 text-xs bg-seville-dark text-white px-3 py-1.5 rounded font-semibold hover:bg-seville-crimson transition">Reserva tu mesa</button>
+                </div>
+
+            </aside>
+
+        </div>
+    </main>
+
+    <!-- PIE DE PÁGINA PERIÓDICO -->
+    <footer class="bg-seville-dark text-gray-300 mt-12 border-t-4 border-seville-gold">
+        <div class="max-w-7xl mx-auto px-4 py-10">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8 text-sm">
+                <div>
+                    <h2 class="font-title text-xl text-white font-bold mb-3">El Correo de la Campana</h2>
+                    <p class="text-xs text-gray-400 leading-relaxed">
+                        Diario digital e independiente comprometido con la información en directo, la historia, la cultura y la pasión cofrade de la ciudad de Sevilla.
+                    </p>
+                </div>
+                <div>
+                    <h4 class="font-bold text-white mb-3 uppercase text-xs tracking-wider">Secciones</h4>
+                    <ul class="space-y-1 text-xs text-gray-400">
+                        <li><a href="#" onclick="filterCategory('Hermandades')" class="hover:text-white">Hermandades y Cofradías</a></li>
+                        <li><a href="#" onclick="filterCategory('Actualidad')" class="hover:text-white">Actualidad y Sevilla hoy</a></li>
+                        <li><a href="#" onclick="filterCategory('Cultura')" class="hover:text-white">Cultura y Museos</a></li>
+                        <li><a href="#" onclick="filterCategory('Opinión')" class="hover:text-white">Columnas de Opinión</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold text-white mb-3 uppercase text-xs tracking-wider">Redacción</h4>
+                    <p class="text-xs text-gray-400 mb-2"><i class="fas fa-map-marker-alt mr-2 text-seville-gold"></i> Plaza de la Campana, Sevilla</p>
+                    <p class="text-xs text-gray-400 mb-2"><i class="fas fa-envelope mr-2 text-seville-gold"></i> redaccion@elcorreodelacampana.es</p>
+                    <p class="text-xs text-gray-400"><i class="fas fa-phone mr-2 text-seville-gold"></i> +34 954 00 00 00</p>
+                </div>
+                <div>
+                    <h4 class="font-bold text-white mb-3 uppercase text-xs tracking-wider">Gestión del Medio</h4>
+                    <p class="text-xs text-gray-400 mb-3">Publica tus propias noticias y mantén al día a tus lectores mediante nuestro panel de redacción.</p>
+                    <button onclick="toggleAdminModal()" class="w-full bg-seville-crimson hover:bg-red-700 text-white font-bold text-xs py-2 px-3 rounded transition flex items-center justify-center gap-2">
+                        <i class="fas fa-plus-circle"></i> Publicar nueva noticia
+                    </button>
+                </div>
+            </div>
+            <div class="border-t border-gray-800 pt-6 text-center text-xs text-gray-500">
+                &copy; <span id="year"></span> El Correo de la Campana. Todos los derechos reservados. Editado desde el centro de Sevilla.
+            </div>
+        </div>
+    </footer>
+
+    <!-- MODAL DE LECTURA DE ARTÍCULO COMPLETO -->
+    <div id="read-modal" class="fixed inset-0 bg-black/75 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm overflow-y-auto">
+        <div class="bg-white rounded-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-2xl relative">
+            <button onclick="closeReadModal()" class="absolute top-4 right-4 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-full w-8 h-8 flex items-center justify-center z-10 transition">
+                <i class="fas fa-times"></i>
+            </button>
+            <div id="modal-content" class="p-6 sm:p-10">
+                <!-- Contenido insertado por JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL ADMIN / PANEL DE PUBLICACIÓN DE NOTICIAS -->
+    <div id="admin-modal" class="fixed inset-0 bg-black/80 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm overflow-y-auto">
+        <div class="bg-white rounded-lg max-w-2xl w-full shadow-2xl overflow-hidden my-8 border border-gray-200">
+            <!-- Header Modal -->
+            <div class="bg-seville-dark text-white px-6 py-4 flex justify-between items-center border-b-2 border-seville-gold">
+                <h3 class="font-title text-xl font-bold flex items-center gap-2">
+                    <i class="fas fa-edit text-seville-gold"></i> Panel de Redacción & Publicación
+                </h3>
+                <button onclick="toggleAdminModal()" class="text-gray-400 hover:text-white text-xl">&times;</button>
+            </div>
+
+            <!-- Formulario de Publicación -->
+            <form id="news-form" onsubmit="handlePublish(event)" class="p-6 space-y-4">
+                <input type="hidden" id="edit-id" value="">
+
+                <div>
+                    <label class="block text-xs font-bold uppercase text-gray-700 mb-1">Título de la Noticia *</label>
+                    <input type="text" id="news-title" required placeholder="Ej: La Hermandad del Gran Poder presenta..." class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-seville-crimson focus:outline-none">
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-gray-700 mb-1">Categoría *</label>
+                        <select id="news-category" required class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-seville-crimson focus:outline-none">
+                            <option value="Hermandades">Hermandades & Cofradías</option>
+                            <option value="Actualidad">Actualidad Local</option>
+                            <option value="Cultura">Cultura & Agenda</option>
+                            <option value="Opinión">Opinión</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-gray-700 mb-1">Autor / Redactor</label>
+                        <input type="text" id="news-author" placeholder="Ej: Redacción Sevilla" class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-seville-crimson focus:outline-none">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold uppercase text-gray-700 mb-1">URL de la Imagen (Opcional)</label>
+                    <input type="url" id="news-image" placeholder="https://ejemplo.com/imagen.jpg (Dejar en blanco para imagen por defecto)" class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-seville-crimson focus:outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold uppercase text-gray-700 mb-1">Resumen / Entradilla *</label>
+                    <textarea id="news-summary" required rows="2" placeholder="Breve introducción de 2 o 3 líneas..." class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-seville-crimson focus:outline-none"></textarea>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold uppercase text-gray-700 mb-1">Cuerpo Completo de la Noticia *</label>
+                    <textarea id="news-content" required rows="6" placeholder="Escribe aquí el texto detallado de la noticia..." class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-seville-crimson focus:outline-none font-serif"></textarea>
+                </div>
+
+                <div class="flex items-center space-x-2 py-2">
+                    <input type="checkbox" id="news-featured" class="rounded text-seville-crimson focus:ring-seville-crimson">
+                    <label for="news-featured" class="text-xs font-bold text-gray-800">Destacar en Portada Principal</label>
+                </div>
+
+                <div class="flex justify-end space-x-3 pt-3 border-t border-gray-200">
+                    <button type="button" onclick="toggleAdminModal()" class="px-4 py-2 border border-gray-300 rounded text-sm text-gray-700 hover:bg-gray-100 font-semibold">Cancelar</button>
+                    <button type="submit" class="px-5 py-2 bg-seville-crimson hover:bg-red-800 text-white font-bold rounded text-sm transition shadow">
+                        <i class="fas fa-paper-plane mr-1"></i> Publicar Noticia
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- NOTIFICACIÓN TIPO TOAST -->
+    <div id="toast" class="fixed bottom-5 right-5 bg-seville-dark text-white px-4 py-3 rounded-lg shadow-xl z-50 transform translate-y-20 opacity-0 transition-all duration-300 flex items-center space-x-3">
+        <i class="fas fa-info-circle text-seville-gold" id="toast-icon"></i>
+        <span id="toast-msg" class="text-sm font-medium">Noticia guardada con éxito.</span>
+    </div>
+
+    <!-- LOGICA JAVASCRIPT -->
+    <script>
+        // Datos por defecto (Noticias iniciales)
+        const initialArticles = [
+            {
+                id: '1',
+                title: 'El Consejo de Hermandades perfila los preparativos para las procesiones extraordinarias del otoño',
+                category: 'Hermandades',
+                author: 'Redacción Cofrade',
+                date: '2026-11-06',
+                summary: 'Las corporaciones ultiman las fechas y recorridos para las salidas conmemorativas aprobadas por la Archidiócesis.',
+                content: 'La ciudad de Sevilla vivirá un otoño intenso en cuanto a devoción popular se refiere. El Consejo General de Hermandades y Cofradías de la ciudad de Sevilla ha mantenido una reunión clave con las distintas corporaciones de penitencia y gloria para coordinar los aspectos de seguridad, itinerarios y horarios.\n\nSe espera una gran afluencia de fieles tanto de la capital como de provincias limítrofes. Las bandas de música más reconocidas del panorama andaluz acompañarán los traslados que recorrerán las calles del casco histórico y Triana.',
+                image: 'https://images.unsplash.com/photo-1569420065096-7b2df3b05f15?w=800&auto=format&fit=crop&q=80',
+                featured: true
+            },
+            {
+                id: '2',
+                title: 'Nuevas actuaciones de restauración en las fachadas del Real Alcázar de Sevilla',
+                category: 'Cultura',
+                author: 'Elena Vázquez',
+                date: '2026-11-05',
+                summary: 'El Ayuntamiento inicia una fase de conservación preventiva en el Patio de las Doncellas y los jardines históricos.',
+                content: 'El Real Alcázar de Sevilla, uno de los conjuntos palaciegos en uso más antiguos del mundo, comienza esta semana unos trabajos especializados de conservación preventiva. El equipo de restauradores trabajará en la consolidación de paños de azulejería del siglo XVI y en las arquerías de estuco del Patio de las Doncellas.\n\nEstas intervenciones se realizarán sin interrumpir la visita del público general, aplicando metodologías de vanguardia para garantizar la correcta preservación del monumento declarado Patrimonio de la Humanidad.',
+                image: 'https://images.unsplash.com/photo-1558642084-fd07fae5282e?w=600&auto=format&fit=crop&q=80',
+                featured: false
+            },
+            {
+                id: '3',
+                title: 'El tranvía amplía su servicio y conectará directamente la Estación de Santa Justa',
+                category: 'Actualidad',
+                author: 'Carlos Mendoza',
+                date: '2026-11-04',
+                summary: 'Avances clave en las obras de movilidad sostenible que transformarán el enlace entre el centro y la red ferroviaria.',
+                content: 'Las obras de extensión del tranvía (Metrocentro) continúan a buen ritmo según ha confirmado la delegación de Movilidad. Este proyecto permitirá unir en pocos minutos el núcleo del casco histórico con la principal estación de ferrocarril de la ciudad, facilitando el transporte limpio a miles de residentes y visitantes diarios.',
+                image: 'https://images.unsplash.com/photo-1543731068-7e0f5beff43a?w=600&auto=format&fit=crop&q=80',
+                featured: false
+            },
+            {
+                id: '4',
+                title: 'La memoria viva de Triana y sus corrales de vecinos en la nueva exposición del castillo de San Jorge',
+                category: 'Cultura',
+                author: 'M. Carmen Gómez',
+                date: '2026-11-03',
+                summary: 'Una muestra fotográfica inédita rinde homenaje a la arquitectura popular y a la artesanía alfarera del barrio.',
+                content: 'El espacio museístico del Castillo de San Jorge acoge una completa recopilación de documentos, fotografías y utensilios cerámicos que rememoran la época dorada de los corrales de vecinos en Triana. La exposición pone de relieve el valor sociológico de la convivencia tradicional a orillas del Guadalquivir.',
+                image: 'https://images.unsplash.com/photo-1516483638261-f4dbaf036963?w=600&auto=format&fit=crop&q=80',
+                featured: false
+            },
+            {
+                id: '5',
+                title: 'Sevilla como epicentro cultural: La importancia de cuidar nuestra identidad ante los retos modernos',
+                category: 'Opinión',
+                author: 'Joaquín Silva',
+                date: '2026-11-02',
+                summary: 'Reflexiones sobre el equilibrio entre la vanguardia tecnológica y la conservación del patrimonio inmaterial hispalense.',
+                content: 'Sevilla no puede ser explicada únicamente por la belleza innegable de sus monumentos; su verdadera esencia habita en la manera en que sus ciudadanos habitan sus plazas, celebran sus tradiciones y acogen al visitante. Ante el avance imparable de la globalización, resulta fundamental conservar el sello único de nuestros barrios.',
+                image: 'https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?w=600&auto=format&fit=crop&q=80',
+                featured: false
+            }
+        ];
+
+        // Estado global de artículos
+        let articles = [];
+        let currentFilter = 'todas';
+
+        // Inicialización al cargar la página
+        window.onload = function() {
+            // Fecha actual
+            const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('date-str').innerText = new Date().toLocaleDateString('es-ES', dateOptions);
+            document.getElementById('year').innerText = new Date().getFullYear();
+
+            // Cargar artículos de localStorage o iniciales
+            const stored = localStorage.getItem('correocampana_articles');
+            if (stored) {
+                try {
+                    articles = JSON.parse(stored);
+                } catch(e) {
+                    articles = initialArticles;
+                }
+            } else {
+                articles = initialArticles;
+                saveToLocalStorage();
+            }
+
+            renderArticles();
+        };
+
+        // Guardar en localStorage
+        function saveToLocalStorage() {
+            localStorage.setItem('correocampana_articles', JSON.stringify(articles));
+        }
+            } else {
+                articles = initialArticles;
+                saveToLocalStorage();
+            }
+
+            renderArticles();
+        };
+
+        // Guardar en localStorage
+        function saveToLocalStorage() {
+            localStorage.setItem('lavoz_hispalis_articles', JSON.stringify(articles));
+        }
+
+        // Renderizado de Noticias
+        function renderArticles(searchTerm = '') {
+            const mainContainer = document.getElementById('main-featured');
+            const gridContainer = document.getElementById('articles-grid');
+
+            // Filtrado por categoría y búsqueda
+            let filtered = articles.filter(art => {
+                const matchCategory = currentFilter === 'todas' || art.category === currentFilter;
+                const matchSearch = searchTerm === '' || 
+                    art.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    art.summary.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    art.category.toLowerCase().includes(searchTerm.toLowerCase());
+                return matchCategory && matchSearch;
+            });
+
+            if (filtered.length === 0) {
+                mainContainer.innerHTML = '';
+                gridContainer.innerHTML = `
+                    <div class="col-span-2 text-center py-12 bg-white rounded-lg border border-dashed border-gray-300">
+                        <i class="fas fa-newspaper text-4xl text-gray-300 mb-2"></i>
+                        <p class="text-gray-500 font-medium">No se encontraron noticias en esta sección.</p>
+                        <button onclick="toggleAdminModal()" class="mt-3 text-xs bg-seville-crimson text-white px-3 py-1.5 rounded font-bold">
+                            Publicar la primera noticia
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+
+            // Buscar si hay destacada, sino usar la primera
+            let featuredArt = filtered.find(a => a.featured) || filtered[0];
+            let otherArts = filtered.filter(a => a.id !== featuredArt.id);
+
+            // Render Noticia Destacada Principial
+            mainContainer.innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-0">
+                    <div class="md:col-span-7 relative min-h-[250px] md:min-h-[360px] bg-gray-900">
+                        <img src="${featuredArt.image || getDefaultImg(featuredArt.category)}" 
+                             onerror="this.src='https://images.unsplash.com/photo-1569420065096-7b2df3b05f15?w=800&auto=format&fit=crop&q=80'"
+                             class="w-full h-full object-cover opacity-90" alt="${featuredArt.title}">
+                        <span class="absolute top-3 left-3 bg-seville-crimson text-white text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded">
+                            ${featuredArt.category}
+                        </span>
+                    </div>
+                    <div class="md:col-span-5 p-6 flex flex-col justify-between">
+                        <div>
+                            <div class="text-xs text-gray-500 mb-2 flex items-center gap-2">
+                                <span><i class="far fa-clock"></i> ${formatDate(featuredArt.date)}</span>
+                                <span>•</span>
+                                <span><i class="far fa-user"></i> ${featuredArt.author || 'Redacción'}</span>
+                            </div>
+                            <h2 onclick="openReadModal('${featuredArt.id}')" class="font-title text-2xl font-extrabold text-seville-dark hover:text-seville-crimson transition cursor-pointer leading-tight mb-3">
+                                ${featuredArt.title}
+                            </h2>
+                            <p class="font-body text-gray-600 text-sm line-clamp-3 mb-4">
+                                ${featuredArt.summary}
+                            </p>
+                        </div>
+                        <div class="flex justify-between items-center pt-4 border-t border-gray-100">
+                            <button onclick="openReadModal('${featuredArt.id}')" class="text-xs font-bold uppercase text-seville-crimson hover:text-seville-dark transition flex items-center gap-1">
+                                Leer Noticia Completa <i class="fas fa-arrow-right"></i>
+                            </button>
+                            <div class="flex space-x-2">
+                                <button onclick="editArticle('${featuredArt.id}')" class="text-gray-400 hover:text-blue-600 p-1 text-xs" title="Editar"><i class="fas fa-edit"></i></button>
+                                <button onclick="deleteArticle('${featuredArt.id}')" class="text-gray-400 hover:text-red-600 p-1 text-xs" title="Eliminar"><i class="fas fa-trash"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Render Noticias Secundarias (Parrilla)
+            gridContainer.innerHTML = otherArts.map(art => `
+                <article class="bg-white rounded-lg overflow-hidden shadow-sm border border-gray-200 flex flex-col justify-between hover:shadow-md transition">
+                    <div>
+                        <div class="relative h-44 bg-gray-100">
+                            <img src="${art.image || getDefaultImg(art.category)}" 
+                                 onerror="this.src='https://images.unsplash.com/photo-1558642084-fd07fae5282e?w=600&auto=format&fit=crop&q=80'"
+                                 class="w-full h-full object-cover" alt="${art.title}">
+                            <span class="absolute top-2 left-2 bg-seville-dark text-white text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded">
+                                ${art.category}
+                            </span>
+                        </div>
+                        <div class="p-4">
+                            <div class="text-[11px] text-gray-400 mb-1 flex items-center justify-between">
+                                <span><i class="far fa-calendar-alt mr-1"></i> ${formatDate(art.date)}</span>
+                                <span>Por ${art.author || 'Redacción'}</span>
+                            </div>
+                            <h3 onclick="openReadModal('${art.id}')" class="font-title font-bold text-lg text-seville-dark hover:text-seville-crimson cursor-pointer transition line-clamp-2 mb-2 leading-snug">
+                                ${art.title}
+                            </h3>
+                            <p class="font-body text-gray-600 text-xs line-clamp-3 leading-relaxed">
+                                ${art.summary}
+                            </p>
+                        </div>
+                    </div>
+                    <div class="px-4 py-3 bg-gray-50 border-t border-gray-100 flex justify-between items-center text-xs">
+                        <button onclick="openReadModal('${art.id}')" class="font-bold text-seville-ochre hover:text-seville-crimson transition">
+                            Continuar leyendo &rarr;
+                        </button>
+                        <div class="flex space-x-2">
+                            <button onclick="editArticle('${art.id}')" class="text-gray-400 hover:text-blue-600" title="Editar"><i class="fas fa-edit"></i></button>
+                            <button onclick="deleteArticle('${art.id}')" class="text-gray-400 hover:text-red-600" title="Eliminar"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </div>
+                </article>
+            `).join('');
+        }
+
+        // Helper Imagen por defecto según categoría
+        function getDefaultImg(cat) {
+            switch(cat) {
+                case 'Hermandades': return 'https://images.unsplash.com/photo-1569420065096-7b2df3b05f15?w=600&auto=format&fit=crop&q=80';
+                case 'Cultura': return 'https://images.unsplash.com/photo-1558642084-fd07fae5282e?w=600&auto=format&fit=crop&q=80';
+                case 'Opinión': return 'https://images.unsplash.com/photo-1455390582262-044cdead277a?w=600&auto=format&fit=crop&q=80';
+                default: return 'https://images.unsplash.com/photo-1543731068-7e0f5beff43a?w=600&auto=format&fit=crop&q=80';
+            }
+        }
+
+        // Formateador de fecha
+        function formatDate(dateStr) {
+            if(!dateStr) return '';
+            const d = new Date(dateStr);
+            return d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
+        }
+
+        // Filtrar por categoría
+        function filterCategory(cat) {
+            currentFilter = cat;
+            document.getElementById('active-category-label').innerText = cat === 'todas' ? 'Todas las noticias' : cat;
+            
+            // Estilos botones navegación
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                if(btn.innerText.toLowerCase().includes(cat.toLowerCase()) || (cat === 'todas' && btn.innerText.toLowerCase() === 'todas')) {
+                    btn.classList.add('text-seville-crimson');
+                } else {
+                    btn.classList.remove('text-seville-crimson');
+                }
+            });
+
+            renderArticles(document.getElementById('search-input').value);
+        }
+
+        // Buscador en vivo
+        function handleSearch() {
+            const query = document.getElementById('search-input').value;
+            renderArticles(query);
+        }
+
+        // Abrir/Cerrar Modal Administrador
+        function toggleAdminModal() {
+            const modal = document.getElementById('admin-modal');
+            if (modal.classList.contains('hidden')) {
+                document.getElementById('news-form').reset();
+                document.getElementById('edit-id').value = '';
+                modal.classList.remove('hidden');
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
+
+        // Publicar / Editar Noticia
+        function handlePublish(e) {
+            e.preventDefault();
+
+            const editId = document.getElementById('edit-id').value;
+            const title = document.getElementById('news-title').value;
+            const category = document.getElementById('news-category').value;
+            const author = document.getElementById('news-author').value || 'Redacción Hispalis';
+            const image = document.getElementById('news-image').value;
+            const summary = document.getElementById('news-summary').value;
+            const content = document.getElementById('news-content').value;
+            const featured = document.getElementById('news-featured').checked;
+
+            if (editId) {
+                // Modo Edición
+                articles = articles.map(art => art.id === editId ? {
+                    ...art,
+                    title, category, author, image, summary, content, featured
+                } : (featured ? {...art, featured: false} : art));
+                showToast('Noticia actualizada correctamente.');
+            } else {
+                // Modo Nueva Noticia
+                if(featured) {
+                    articles.forEach(a => a.featured = false);
+                }
+                const newArticle = {
+                    id: Date.now().toString(),
+                    title,
+                    category,
+                    author,
+                    date: new Date().toISOString().split('T')[0],
+                    summary,
+                    content,
+                    image,
+                    featured
+                };
+                articles.unshift(newArticle);
+                showToast('¡Noticia publicada con éxito!');
+            }
+
+            saveToLocalStorage();
+            renderArticles();
+            toggleAdminModal();
+        }
+
+        // Editar Noticia Existente
+        function editArticle(id) {
+            const art = articles.find(a => a.id === id);
+            if (!art) return;
+
+            document.getElementById('edit-id').value = art.id;
+            document.getElementById('news-title').value = art.title;
+            document.getElementById('news-category').value = art.category;
+            document.getElementById('news-author').value = art.author;
+            document.getElementById('news-image').value = art.image || '';
+            document.getElementById('news-summary').value = art.summary;
+            document.getElementById('news-content').value = art.content;
+            document.getElementById('news-featured').checked = !!art.featured;
+
+            document.getElementById('admin-modal').classList.remove('hidden');
+        }
+
+        // Eliminar Noticia
+        function deleteArticle(id) {
+            if (confirm('¿Estás seguro de que deseas eliminar esta noticia?')) {
+                articles = articles.filter(a => a.id !== id);
+                saveToLocalStorage();
+                renderArticles();
+                showToast('Noticia eliminada.');
+            }
+        }
+
+        // Abrir Lector Modal
+        function openReadModal(id) {
+            const art = articles.find(a => a.id === id);
+            if (!art) return;
+
+            const modalContent = document.getElementById('modal-content');
+            modalContent.innerHTML = `
+                <div class="mb-4">
+                    <span class="bg-seville-crimson text-white text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded inline-block mb-3">
+                        ${art.category}
+                    </span>
+                    <h1 class="font-title text-2xl sm:text-4xl font-extrabold text-seville-dark leading-tight mb-3">
+                        ${art.title}
+                    </h1>
+                    <div class="flex items-center text-xs text-gray-500 border-y border-gray-200 py-2 my-4">
+                        <span class="mr-4"><i class="far fa-user text-seville-ochre mr-1"></i> ${art.author || 'Redacción'}</span>
+                        <span><i class="far fa-calendar-alt text-seville-ochre mr-1"></i> ${formatDate(art.date)}</span>
+                    </div>
+                </div>
+
+                ${art.image ? `
+                    <div class="mb-6 rounded-lg overflow-hidden max-h-[400px]">
+                        <img src="${art.image}" class="w-full h-full object-cover" alt="${art.title}">
+                    </div>
+                ` : ''}
+
+                <div class="font-serif text-lg font-semibold text-gray-800 leading-relaxed italic mb-6 border-l-4 border-seville-gold pl-4">
+                    ${art.summary}
+                </div>
+
+                <div class="font-serif text-gray-800 leading-relaxed space-y-4 text-base whitespace-pre-line">
+                    ${art.content}
+                </div>
+
+                <div class="mt-8 pt-4 border-t border-gray-200 flex justify-between items-center text-xs text-gray-500">
+                    <span>Publicado en <strong>El Correo de la Campana</strong></span>
+                    <button onclick="closeReadModal()" class="bg-seville-dark text-white px-4 py-2 rounded font-bold hover:bg-seville-crimson transition">
+                        Cerrar Lectura
+                    </button>
+                </div>
+            `;
+
+            document.getElementById('read-modal').classList.remove('hidden');
+        }
+
+        function closeReadModal() {
+            document.getElementById('read-modal').classList.add('hidden');
+        }
+
+        // Notificaciones Toast
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-msg').innerText = msg;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
